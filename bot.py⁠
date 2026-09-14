@@ -1,9 +1,11 @@
+import os
 import json
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 
-TOKEN = "8816209068:AAF6v46VKJQd_a47GjYbBGK7uazlcW99jOI"
-GROUP_CHAT_ID = -1004485383176  
+# ទាញយក Token និង Group ID ពី Environment Variables របស់ Render
+TOKEN = os.getenv("BOT_TOKEN")
+GROUP_CHAT_ID = int(os.getenv("GROUP_CHAT_ID", "0"))
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
@@ -15,7 +17,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=reply_markup
     )
 
-# មុខងារទទួលទិន្នន័យពេលអតិថិជនចុច Submit services ពី Mini App
 async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         data_json = update.message.web_app_data.data
@@ -28,7 +29,6 @@ async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE
         total_price = data.get("total_price")
         user = update.effective_user
 
-        # សារที่จะផ្ញើចូលទៅក្នុង Telegram Group របស់ Admin
         group_message = (
             f"🚨 <b>មានការបញ្ជាទិញ SMM ថ្មី!</b>\n\n"
             f"👤 <b>អតិថិជន:</b> @{user.username or user.first_name} (ID: {user.id})\n"
@@ -40,14 +40,12 @@ async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE
             f"⏳ <i>ស្ថានភាព: កំពុងរង់ចាំ Admin ដំណើរការជូន។</i>"
         )
 
-        # ផ្ញើសារចូលទៅក្នុងគ្រុប
         await context.bot.send_message(
             chat_id=GROUP_CHAT_ID,
             text=group_message,
             parse_mode="HTML"
         )
 
-        # ឆ្លើយតបបញ្ជាក់ទៅអតិថិជនវិញក្នុងแชทផ្ទាល់ខ្លួន
         await update.message.reply_text(
             f"✅ <b>ការបញ្ជាទិញរបស់អ្នកបានបញ្ជូនទៅកាន់ប្រព័ន្ធជោគជ័យ!</b>\n\n"
             f"🔗 Link: {link}\n"
@@ -64,7 +62,6 @@ if __name__ == "__main__":
     app = ApplicationBuilder().token(TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
-    # ទទួលទិន្នន័យពី Web App
     app.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA | filters.TEXT, handle_web_app_data))
 
     print("Bot ANAJAK SMM កំពុងដំណើរការ...")
